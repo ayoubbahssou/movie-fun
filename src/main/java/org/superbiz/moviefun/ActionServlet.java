@@ -19,6 +19,10 @@ package org.superbiz.moviefun;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.superbiz.moviefun.movies.Movie;
 import org.superbiz.moviefun.movies.MoviesBean;
 
@@ -39,8 +43,15 @@ public class ActionServlet extends HttpServlet {
 
     public static int PAGE_SIZE = 5;
 
-    @Autowired
+    private final TransactionTemplate moviesTransactionTemplate;
+
+
     private MoviesBean moviesBean;
+
+    public ActionServlet(@Autowired PlatformTransactionManager moviesPlatformTransactionManager,@Autowired MoviesBean moviesBean) {
+        this.moviesTransactionTemplate = new TransactionTemplate(moviesPlatformTransactionManager);
+        this.moviesBean = moviesBean;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -64,8 +75,11 @@ public class ActionServlet extends HttpServlet {
             int year = Integer.parseInt(request.getParameter("year"));
 
             Movie movie = new Movie(title, director, genre, rating, year);
-
-            moviesBean.addMovie(movie);
+            moviesTransactionTemplate.execute(new TransactionCallbackWithoutResult() {
+                protected void doInTransactionWithoutResult(TransactionStatus status) {
+                    moviesBean.addMovie(movie);
+                }
+            });
             response.sendRedirect("moviefun");
             return;
 

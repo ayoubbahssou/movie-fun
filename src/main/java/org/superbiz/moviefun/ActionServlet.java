@@ -75,11 +75,11 @@ public class ActionServlet extends HttpServlet {
             int year = Integer.parseInt(request.getParameter("year"));
 
             Movie movie = new Movie(title, director, genre, rating, year);
-            moviesTransactionTemplate.execute(new TransactionCallbackWithoutResult() {
-                protected void doInTransactionWithoutResult(TransactionStatus status) {
+//            moviesTransactionTemplate.execute(new TransactionCallbackWithoutResult() {
+//                protected void doInTransactionWithoutResult(TransactionStatus status) {
                     moviesBean.addMovie(movie);
-                }
-            });
+//                }
+//            });
             response.sendRedirect("moviefun");
             return;
 
